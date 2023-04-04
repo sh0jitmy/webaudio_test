@@ -1,0 +1,49 @@
+{
+  "name": "audio-streaming-over-websocket",
+  "version": "1.0.0",
+  "description": "Audio streaming over WebSocket",
+  "private": true,
+  "scripts": {
+    "start": "node server/index.js",
+    "dev-js:pub": "watchify ./client/assets/js/pub/main.js -v -o ./client/pub/app.js",
+    "dev-js:sub": "watchify ./client/assets/js/sub/main.js -v -o ./client/sub/app.js",
+    "dev-js": "parallelshell \"npm run dev-js:pub\" \"npm run dev-js:sub\"",
+    "build-js:pub": "browserify ./client/assets/js/pub/main.js -o ./client/pub/app.js",
+    "build-js:sub": "browserify ./client/assets/js/sub/main.js -o ./client/sub/app.js",
+    "build-js": "parallelshell \"npm run build-js:pub\" \"npm run build-js:sub\"",
+    "dev-css:pub": "postcss -c ./.postcssrc.json -o ./client/pub/app.css -w",
+    "dev-css:sub": "postcss -c ./.postcssrc.json -o ./client/sub/app.css -w",
+    "dev-css": "parallelshell \"npm run dev-css:pub\" \"npm run dev-css:sub\"",
+    "build-css:pub": "postcss -c ./.postcssrc.json -o ./client/pub/app.css",
+    "build-css:sub": "postcss -c ./.postcssrc.json -o ./client/sub/app.css",
+    "build-css": "parallelshell \"npm run build-css:pub\" \"npm run build-css:sub\"",
+    "dev": "parallelshell \"npm run dev-js\" \"npm run dev-css\"",
+    "build": "parallelshell \"npm run build-js\" \"npm run build-css\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leader22/audio-streaming-over-websocket.git"
+  },
+  "author": "leader22",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/leader22/audio-streaming-over-websocket/issues"
+  },
+  "homepage": "https://github.com/leader22/audio-streaming-over-websocket#readme",
+  "dependencies": {
+    "milligram": "^1.1.0",
+    "socket.io": "^1.4.5",
+    "socket.io-client": "^1.4.5",
+    "vue": "^1.0.16",
+    "webworkify": "^1.1.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^6.3.3",
+    "browserify": "^13.0.0",
+    "cssnano": "^3.5.2",
+    "parallelshell": "^2.0.0",
+    "postcss-cli": "^2.5.1",
+    "postcss-import": "^8.0.2",
+    "watchify": "^3.7.0"
+  }
+}
