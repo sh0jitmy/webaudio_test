@@ -14,7 +14,7 @@ module.exports = {
     _ctx:    null,
     _audio:  {
       source:    null,
-      processor: null,
+      node: null,
       filter:    null,
       analyser:  null,
       gain:      null
@@ -34,7 +34,12 @@ module.exports = {
     onMic: function() {
       var that = this;
       if (that.state.isMicOn) { return; }
-
+     
+      if (this.$data._ctx == null) { 
+        //move Audio Context
+        this.$data._ctx = new window.AudioContext();
+        this.addModule();   
+      }
       navigator.getUserMedia(
         { audio: true },
         this._onMicStream,
@@ -42,6 +47,10 @@ module.exports = {
           console.error(err);
         }
       );
+    },
+
+    addModule: async function () {
+        await this.$data._ctx.audioWorklet.addModule('./gain-processor.js');
     },
 
     offMic:  function() {
@@ -63,7 +72,7 @@ module.exports = {
       var audio = this.$data._audio;
       if (this.noFilter) {
         audio.source.disconnect();
-        audio.source.connect(audio.processor);
+        audio.source.connect(audio.node);
       } else {
         audio.source.disconnect();
         audio.source.connect(audio.filter);
@@ -111,17 +120,18 @@ module.exports = {
       audio.analyser.fftSize = BUFFER_SIZE;
 
       // 音質には期待しないのでモノラルで飛ばす
-      audio.processor = ctx.createScriptProcessor(BUFFER_SIZE, 1, 1);
-      audio.processor.onaudioprocess = this._onAudioProcess;
+      audio.node = new AudioWorkletNode(ctx,"gain-processor");
+      audio.node.onmessage = this._onAudioProcess;
 
       // 自分のフィードバックいらない
       audio.gain = ctx.createGain();
       audio.gain.gain.value = 0;
 
       audio.source.connect(audio.filter);
-      audio.filter.connect(audio.processor);
-      audio.processor.connect(audio.analyser);
-      audio.processor.connect(audio.gain);
+      audio.filter.connect(audio.node);
+      audio.node.connect(audio.analyser);
+      //audio.node.connect(ctx.destination);
+      audio.node.connect(audio.gain);
       audio.gain.connect(ctx.destination);
 
       this._drawInputSpectrum();
@@ -169,7 +179,7 @@ module.exports = {
     _hookCreated: function() {
       var $data = this.$data;
 
-      $data._ctx = new window.AudioContext();
+      //$data._ctx = new window.AudioContext();
 
       $data._worker = work(require('./worker.js'));
       $data._worker.postMessage({
