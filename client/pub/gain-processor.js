@@ -10,6 +10,7 @@ class GainProcessor extends AudioWorkletProcessor {
     super();
   }
 
+  /*
   process(inputs, outputs, parameters) {
     let input = inputs[0];
     let output = outputs[0];
@@ -20,7 +21,21 @@ class GainProcessor extends AudioWorkletProcessor {
       for (let i = 0; i < inputChannel.length; ++i)
         outputChannel[i] = inputChannel[i];
     }
-
+  */
+  process(inputs, outputs, parameters) {
+    const input = inputs[0][0];
+    const output = outputs[0][0];
+    if (input == undefined) {
+      return true;
+    }
+    const bufarr = new Int16Array(new ArrayBuffer(input.length * 2));
+    for (let i = 0; i < input.length; ++i) {
+      output[i] = input[i]
+      bufarr[i] = input[i] < 0 ? input[i] * 0x8000 : input[i] * 0x7FFF;
+    }
+    if (bufarr.length > 0) {
+      this.port.postMessage(bufarr);
+    }
     return true;
   }
 }

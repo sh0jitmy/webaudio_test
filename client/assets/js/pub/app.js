@@ -37,7 +37,7 @@ module.exports = {
      
       if (this.$data._ctx == null) { 
         //move Audio Context
-        this.$data._ctx = new window.AudioContext();
+        this.$data._ctx = new window.AudioContext({sampleRate: 22050});
         this.addModule();   
       }
       navigator.getUserMedia(
@@ -81,7 +81,7 @@ module.exports = {
 
     startPub: function() {
       if (!this.state.isMicOn) { return; }
-      if (this.state.isPub) { return; }
+      //if (this.state.isPub) { return; }
 
       this.state.isPub = true;
       this.$data._worker.postMessage({
@@ -121,7 +121,14 @@ module.exports = {
 
       // 音質には期待しないのでモノラルで飛ばす
       audio.node = new AudioWorkletNode(ctx,"gain-processor");
-      audio.node.onmessage = this._onAudioProcess;
+      audio.node.port.onmessage = msg => {
+        if (this.state.isPub) {
+          this.$data._worker.postMessage({
+            type: 'AUDIO',
+            data: {buf:msg.data.buffer, ch: this.chName }
+          });
+        }
+      }
 
       // 自分のフィードバックいらない
       audio.gain = ctx.createGain();

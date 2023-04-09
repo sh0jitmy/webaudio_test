@@ -33,6 +33,9 @@ module.exports = {
   },
   methods: {
     startSub: function() {
+      if (this.$data._ctx == null) { 
+        this.$data._ctx = new window.AudioContext({sampleRate: 22050});
+      }
       if (this.state.isSub) { return; }
 
       this.$data._worker.postMessage({
@@ -77,7 +80,8 @@ module.exports = {
 
     _hookCreated: function() {
       var $data = this.$data;
-      $data._ctx = new window.AudioContext();
+      //masked
+      //$data._ctx = new window.AudioContext();
 
       $data._worker = work(require('./worker.js'));
       $data._worker.addEventListener('message', this._handleWorkerMsg);
